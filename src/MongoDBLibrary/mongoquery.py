@@ -227,18 +227,7 @@ class MongoQuery(object):
         | ${_id} = [(u'_id', ObjectId('...')), (u'firstName', u'Clark')]
 
         """
-        # Convert return__id to boolean value because Robot Framework returns False/True as Unicode
-        try:
-            if return__id.isdigit():
-                pass
-            else:
-                return__id = return__id.lower()
-                if return__id == 'false':
-                    return__id = False
-                else:
-                    return__id = True
-        except AttributeError:
-            pass
+        return__id = _convert_to_boolean(return__id)
 
         # Convert the fields string as a dictionary and handle _id field
         if fields:
@@ -282,7 +271,38 @@ class MongoQuery(object):
             if db :
                 self._dbconnection.end_request() 
 
-    def remove_mongodb_records(self, dbName, dbCollName, recordJSON):
+    def update_mongodb_records(self, dbName, dbCollName, specJSON, documentJSON, multi=False, upsert=False):
+        """
+        Update some of the records in a given MongoDB database collection
+        based on the JSON entered.
+        
+        The JSON fed in must be double quoted but when doing a comparison, it
+        has to be single quoted.  See Usage below
+        
+        Usage is:
+        | ${allResults} | Update MongoDB Records | ${MDBDB} | ${MDBColl} | {"_id": "4dacab2d52dfbd26f1000000"} | {"$set": {"foo": "bar"}} |
+        | Log | ${allResults} |
+        | ${output} | Retrieve Some MongoDB Records | ${MDBDB} | ${MDBColl} | {"_id": "4dacab2d52dfbd26f1000000"} |
+        | Should Contain | ${output} | '"foo": "bar"' |
+        """
+        db = None
+        try:
+            dbName = str(dbName)
+            dbCollName = str(dbCollName)
+            multi = self._convert_to_boolean(multi)
+            upsert = self._convert_to_boolean(upsert)
+            print "| ${allResults} | Update MongoDB Records | %s | %s | %s | %s | %s | %s |" % (dbName,dbCollName,specJSON,documentJSON,multi,upsert)
+            specJSON = json.loads(specJSON)
+            documentJSON = json.loads(documentJSON)
+            db = self._dbconnection['%s' % (dbName,)]
+            coll = db['%s' % (dbCollName)]
+            allResults = coll.update(specJSON, documentJSON, multi=multi, upsert=upsert)
+            return allResults
+        finally :
+            if db :
+                self._dbconnection.end_request()
+
+    def remove_mongodb_records(self, dbName, dbCollName, recordJSON, multi=False):
         """
         Remove some of the records from a given MongoDB database collection
         based on the JSON entered.
@@ -310,10 +330,25 @@ class MongoQuery(object):
                 recordJSON['_id']=ObjectId(recordJSON['_id'])
             db = self._dbconnection['%s' % (dbName,)]
             coll = db['%s' % (dbCollName)]
-            allResults = coll.remove(recordJSON)
+            allResults = coll.remove(recordJSON, multi=self._convert_to_boolean(multi))
             print "| ${allResults} | Remove MongoDB Records | %s | %s | %s |" % (dbName,dbCollName,recordJSON)
             return allResults
         finally :
             if db :
-                self._dbconnection.end_request() 
+                self._dbconnection.end_request()
+
+    def _convert_to_boolean(self, parameter):
+        # Convert parameter to boolean value because Robot Framework returns False/True as Unicode
+        try:
+            if parameter.isdigit():
+                return bool(parameter)
+            else:
+                parameter = parameter.lower()
+                if parameter == 'false':
+                    return False
+                else:
+                    return True
+        except AttributeError:
+            return bool(parameter)
+        
 
