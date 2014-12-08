@@ -187,7 +187,7 @@ class MongoQuery(object):
         | Should Contain X Times | ${allResults} | '${recordNo1}' | 1 |
         """
         print "| ${allResults} | Retrieve Some MongoDB Records | %s | %s | %s |" % (dbName,dbCollName,recordJSON)
-        return self._retrieve_mongodb_records(dbName, dbCollName, recordJSON, returnDocuments)
+        return self._retrieve_mongodb_records(dbName, dbCollName, recordJSON, None, returnDocuments)
 
     def retrieve_mongodb_records_with_desired_fields(self, dbName, dbCollName, recordJSON, fields, return__id=True, returnDocuments=False):
         """
@@ -302,7 +302,7 @@ class MongoQuery(object):
             if db :
                 self._dbconnection.end_request()
 
-    def remove_mongodb_records(self, dbName, dbCollName, recordJSON, multi=False):
+    def remove_mongodb_records(self, dbName, dbCollName, recordJSON, multi=True):
         """
         Remove some of the records from a given MongoDB database collection
         based on the JSON entered.
@@ -316,7 +316,7 @@ class MongoQuery(object):
         | ${output} | Retrieve All MongoDB Records | ${MDBDB} | ${MDBColl} |
         | Should Not Contain | ${output} | '4dacab2d52dfbd26f1000000' |
         or
-        | ${allResults} | Remove MongoDB Records | ${MDBDB} | ${MDBColl} | {"timestamp": {"$lt": 2}} |
+        | ${allResults} | Remove MongoDB Records | ${MDBDB} | ${MDBColl} | {"timestamp": {"$lt": 2}} | true |
         | Log | ${allResults} |
         | ${output} | Retrieve All MongoDB Records | ${MDBDB} | ${MDBColl} |
         | Should Not Contain | ${output} | 'timestamp', 1 |
@@ -331,7 +331,7 @@ class MongoQuery(object):
             db = self._dbconnection['%s' % (dbName,)]
             coll = db['%s' % (dbCollName)]
             allResults = coll.remove(recordJSON, multi=self._convert_to_boolean(multi))
-            print "| ${allResults} | Remove MongoDB Records | %s | %s | %s |" % (dbName,dbCollName,recordJSON)
+            print "| ${allResults} | Remove MongoDB Records | %s | %s | %s | %s |" % (dbName,dbCollName,recordJSON,multi)
             return allResults
         finally :
             if db :
