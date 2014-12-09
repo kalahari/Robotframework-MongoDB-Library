@@ -1,10 +1,14 @@
 import json
 from bson.objectid import ObjectId
+from bson.json_util import dumps
 
 class MongoQuery(object):
     """
     Query handles all the querying done by the MongoDB Library. 
     """
+
+    def dump_mongodb_to_json(self, bson):
+        return dumps(bson)
 
     def get_mongodb_databases(self):
         """
@@ -296,7 +300,7 @@ class MongoQuery(object):
             documentJSON = json.loads(documentJSON)
             db = self._dbconnection['%s' % (dbName,)]
             coll = db['%s' % (dbCollName)]
-            allResults = coll.update(specJSON, documentJSON, multi=multi, upsert=upsert)
+            allResults = coll.update(specJSON, documentJSON, multi=multi, upsert=upsert, w=1)
             return allResults
         finally :
             if db :
