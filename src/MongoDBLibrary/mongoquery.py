@@ -7,9 +7,6 @@ class MongoQuery(object):
     Query handles all the querying done by the MongoDB Library. 
     """
 
-    def dump_mongodb_to_json(self, bson):
-        return dumps(bson)
-
     def get_mongodb_databases(self):
         """
         Returns a list of all of the databases currently on the MongoDB 
@@ -340,6 +337,17 @@ class MongoQuery(object):
         finally :
             if db :
                 self._dbconnection.end_request()
+
+    def dump_mongodb_to_json(self, bson):
+        """
+        Converts MongoDB records into JSON strings.
+
+        Usage is:
+        | ${allResults} | Retrieve All MongoDB Records | DBName | CollectionName |
+        | ${json} | Dump MongoDB to JSON | ${allResults} |
+        | Log | ${json} |
+        """
+        return dumps(bson)
 
     def _convert_to_boolean(self, parameter):
         # Convert parameter to boolean value because Robot Framework returns False/True as Unicode
