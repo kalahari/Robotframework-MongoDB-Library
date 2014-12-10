@@ -284,7 +284,7 @@ class MongoQuery(object):
         | ${allResults} | Update MongoDB Records | ${MDBDB} | ${MDBColl} | {"_id": "4dacab2d52dfbd26f1000000"} | {"$set": {"foo": "bar"}} |
         | Log | ${allResults} |
         | ${output} | Retrieve Some MongoDB Records | ${MDBDB} | ${MDBColl} | {"_id": "4dacab2d52dfbd26f1000000"} |
-        | Should Contain | ${output} | '"foo": "bar"' |
+        | Log | ${output} |
         """
         db = None
         try:
